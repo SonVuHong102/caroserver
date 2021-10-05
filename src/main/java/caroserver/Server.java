@@ -30,7 +30,7 @@ public class Server {
 				Socket client = server.accept();
 				String name = "client" + Value.clientID;
 				Value.clientID++;
-				System.out.println("$ Client : " + client.getInetAddress().getHostAddress() + " - " + client.getPort() + " connected as " + name + " \n");
+				System.out.println("$ Client : " + client.getInetAddress().getHostAddress() + " - " + client.getPort() + " connected as " + name + "   \n");
 				Thread newClient = new Thread(new SessionServer(client,name));
 				newClient.start();
 			}
