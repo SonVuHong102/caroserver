@@ -5,8 +5,6 @@
  */
 package caroserver;
 
-import utils.Value;
-
 /**
  *
  * @author Son Vu
@@ -14,7 +12,7 @@ import utils.Value;
 public class CaroServer {
 
 	public static void main(String[] args) {
-		Server server = new Server(Value.portNum);
+		Server server = new Server();
 		server.start();
 	}
 	
