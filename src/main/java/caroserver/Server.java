@@ -10,7 +10,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
 
 import utils.Value;
 
@@ -35,7 +34,8 @@ public class Server {
 				DatagramPacket p = new DatagramPacket(buf,buf.length);
 				server.receive(p);
 				String msg = new String(buf);
-				System.out.println("$ Msg received :  " + msg);
+				System.out.print("$ Msg received : [" + msg + "]");
+				System.out.println(" from : " + p.getAddress() + ":" + p.getPort());
 				String responseMsg = analyzer.analyse(msg);
 				System.out.println("$ Msg response :  " + responseMsg);
 				p = new DatagramPacket(responseMsg.getBytes(), responseMsg.length(), InetAddress.getByName(Value.groupAddress), Value.clientPort);
