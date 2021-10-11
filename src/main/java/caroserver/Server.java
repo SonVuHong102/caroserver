@@ -28,7 +28,6 @@ public class Server {
 			System.out.println("$ Creating Server Multicast ... ");
 			DatagramSocket server = new DatagramSocket(null);
 			server.bind(new InetSocketAddress(InetAddress.getByName(Value.serverAddress),Value.serverPort));
-			server.setSoTimeout(20000);
 			System.out.println("$ Server Created\n");
 			MessageAnalyzer analyzer = new MessageAnalyzer();
 			while(true) {
@@ -37,10 +36,11 @@ public class Server {
 				server.receive(p);
 				String msg = new String(buf);
 				System.out.println("$ Msg received :  " + msg);
-				String responeMsg = analyzer.analyse(msg);
-				System.out.println("$ Msg respone :  " + responeMsg);
-				DatagramPacket p1 = new DatagramPacket(responeMsg.getBytes(), responeMsg.length(), InetAddress.getByName(Value.groupAddress), Value.clientPort);
-				server.send(p1);
+				String responseMsg = analyzer.analyse(msg);
+				System.out.println("$ Msg response :  " + responseMsg);
+				p = new DatagramPacket(responseMsg.getBytes(), responseMsg.length(), InetAddress.getByName(Value.groupAddress), Value.clientPort);
+				server.send(p);
+				
 			}
 		} catch (IOException ex) {
 			ex.printStackTrace();
