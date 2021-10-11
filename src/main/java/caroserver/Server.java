@@ -19,9 +19,6 @@ import utils.Value;
  */
 public class Server {
 	
-	public Server() {
-	}
-	
 	public void start() {
 		try {
 			System.out.println("$ Creating Server Multicast ... ");
@@ -33,11 +30,11 @@ public class Server {
 				byte[] buf = new byte[1024];
 				DatagramPacket p = new DatagramPacket(buf,buf.length);
 				server.receive(p);
-				String msg = new String(buf);
+				String msg = new String(buf).trim();
 				System.out.print("$ Msg received : [" + msg + "]");
 				System.out.println(" from : " + p.getAddress() + ":" + p.getPort());
-				String responseMsg = analyzer.analyse(msg);
-				System.out.println("$ Msg response :  " + responseMsg);
+				String responseMsg = analyzer.analyze(msg);
+				System.out.println("$ Msg responsed :  " + responseMsg);
 				p = new DatagramPacket(responseMsg.getBytes(), responseMsg.length(), InetAddress.getByName(Value.groupAddress), Value.clientPort);
 				server.send(p);
 				
@@ -45,5 +42,28 @@ public class Server {
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
+	}
+	
+	private class MessageAnalyzer {	
+		
+		public String analyze(String msg) {
+			String result = "none";
+			String[] t = msg.split(" ");
+			// Request : [connect] - Response : [accept connection] (Connection accepted, create new ClientSession)
+			if(t[0].equalsIgnoreCase("connect")) {
+				result = "accept connection";
+			}
+			// Request : [login <username> <password>] - Response : [accept <username>] (Login accepted, initiate client information)
+			else if(t[0].equalsIgnoreCase("login")) {
+				String username = t[1];
+				String password = t[2];
+				//TEST BEFORE ADD DATABASE
+				if(username.equalsIgnoreCase(password)) {
+					result = "accept " + username;
+				}
+			}
+			return result;
+		}
+		
 	}
 }
