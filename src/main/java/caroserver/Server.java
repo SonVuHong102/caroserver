@@ -23,10 +23,10 @@ public class Server {
 	
 	public Server() {
 		playerList = new ArrayList<Player>();
-		//TEST BEFORE ADD DATABASE
-		playerList.add(new Player("player1"));
-		playerList.add(new Player("player2"));
-		playerList.add(new Player("player3"));
+		// TODO TEST BEFORE ADD DATABASE
+//		playerList.add(new Player("player1"));
+//		playerList.add(new Player("player2"));
+//		playerList.add(new Player("player3"));
 	}
 	
 	public void start() {
@@ -59,17 +59,17 @@ public class Server {
 		public String analyze(String msg) {
 			StringBuilder result = new StringBuilder("");
 			String[] t = msg.split(" ");
-			// Request : [connect] - Response : [accept connection] (Connection accepted, create new ClientSession)
+			// Request : [connect] -> Response : [accept connection] (Connection accepted, create new ClientSession)
 			if(t[0].equalsIgnoreCase("connect")) {
 				result.append("accept connection");
-			} // Request : [ <username> <....>] - Response : [<username> <....>] (Authorized username for sending message)
+			} // Request : [ <username> <....>] -> Response : [<username> <....>] (Authorized <username> for sending message)
 			
-			// Request : [<username> login <password>] - Response : [<username> login accept] (Login accepted, initiate client information)
+			// Request : [<username> login <password>] -> Response : [<username> login accept] (Login accepted, initiate client information)
 			else if(t[1].equalsIgnoreCase("login")) {
 				String username = t[0];
-				String password = t[2];
+				String password = t[2]; 
 				
-				//TEST BEFORE ADD DATABASE
+				// TODO TEST BEFORE ADD DATABASE
 				if(username.equalsIgnoreCase(password)) {
 					result.append(username + " login accept");
 				} else {
@@ -77,18 +77,29 @@ public class Server {
 				}
 				
 			} 
-			// Request : [ <username> refresh] - Response : [<username> refresh <username1> <username2> ...] (Sending Player list)
+			// Request : [<username> refresh] -> Response : [<username> refresh <username1> <username2> ...] (Sending Player list)
 			else if(t[1].equalsIgnoreCase("refresh")) {
-				result.append(t[0] + " refresh");
+				// TODO add online checking function
+				result.append(msg);
 				for(Player i : playerList) {
 					result.append(" " + i.getUsername());
 				}
 				
 			} 
-			// Request : [ <username> create] - Response : [<username> create accept] (Create room for <username>)
+			// Request : [<username> create] -> Response : [<username> create accept] (Create room for <username>)
 			else if(t[1].equalsIgnoreCase("create")) {
 				playerList.add(new Player(t[0]));
-				result.append(t[0] + " create accept");
+				result.append(msg + " accept");
+			}
+			// Request : [<username> invite <opponent>] -> Response : [<username> invite <opponent> sent] (Send invitation from <username> to <opponent>)
+			else if(t[1].equalsIgnoreCase("invite")) {
+				// TODO check online status
+				if(t.length == 3) {
+					result.append(msg + " sent");
+				} else {
+					// Request : [<username> invite <opponent> accepted] -> Response : [<username> invite <opponent> accepted] (invitation accepted. Send creating room response )
+					result.append(msg);
+				}
 			}
 			return result.toString();
 		}
