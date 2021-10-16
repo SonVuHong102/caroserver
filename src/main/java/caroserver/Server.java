@@ -33,7 +33,8 @@ public class Server {
 		try {
 			System.out.println("$ Creating Server Multicast ... ");
 			DatagramSocket server = new DatagramSocket(null);
-			server.bind(new InetSocketAddress(InetAddress.getByName(Value.serverAddress),Value.serverPort));
+//			server.bind(new InetSocketAddress(InetAddress.getByName(Value.serverAddress),Value.serverPort));
+			server.bind(new InetSocketAddress(Value.serverPort));
 			System.out.println("$ Server Created\n");
 			MessageAnalyzer analyzer = new MessageAnalyzer();
 			while(true) {
