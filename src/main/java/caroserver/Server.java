@@ -33,7 +33,7 @@ public class Server {
 		try {
 			System.out.println("$ Creating Server Multicast ... ");
 			DatagramSocket server = new DatagramSocket(null);
-			server.bind(new InetSocketAddress(InetAddress.getByName(Value.serverAddress),Value.serverPort));
+                        server.bind(new InetSocketAddress(Value.serverPort));
 			System.out.println("$ Server Created\n");
 			MessageAnalyzer analyzer = new MessageAnalyzer();
 			while(true) {
@@ -47,7 +47,6 @@ public class Server {
 				System.out.println("$ Msg responsed :  [" + responseMsg + "]");
 				p = new DatagramPacket(responseMsg.getBytes(), responseMsg.length(), InetAddress.getByName(Value.groupAddress), Value.clientPort);
 				server.send(p);
-				
 			}
 		} catch (IOException ex) {
 			ex.printStackTrace();
@@ -104,5 +103,45 @@ public class Server {
 			return result.toString();
 		}
 		
+        
+	}
+     
+        private int checkWin(int row, int col, int[][] matrix) {
+		int[][] go = { { 0, -1, 0, 1 }, { -1, 0, 1, 0 }, { 1, -1, -1, 1 },
+				{ -1, -1, 1, 1 } };
+		int i = row, j = col;
+                
+                // matrix[row][col] = 1 => team 1 thắng
+                // matrix[row][col] = 2 => team 2 thắng.
+		for (int direction = 0; direction < 4; direction++) {
+			int count = 0;
+			i = row;
+			j = col;
+                        // đi xuôi
+			while (i > 0 && i < matrix.length && j > 0 && j < matrix.length
+					&& matrix[i][j] == matrix[row][col]) {
+				count++;
+				if (count == 5) {
+					return matrix[row][col];
+				}
+				i += go[direction][0];
+				j += go[direction][1];
+			}
+                        
+                        // đi ngược
+			count--;
+			i = row;
+			j = col;
+			while (i > 0 && i < matrix.length && j > 0 && j < matrix.length
+					&& matrix[i][j] == matrix[row][col]) {
+				count++;
+				if (count == 5) {
+					return matrix[row][col]; // thang
+				}
+				i += go[direction][2];
+				j += go[direction][3];
+			}
+		}
+		return 0; // khong thang
 	}
 }
