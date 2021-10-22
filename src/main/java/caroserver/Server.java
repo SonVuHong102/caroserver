@@ -105,50 +105,7 @@ public class Server {
 		
         
 	}
-        
-       private int checkWin(int row, int col) {
-		int[][] rc = { { 0, -1, 0, 1 }, { -1, 0, 1, 0 }, { 1, -1, -1, 1 },
-				{ -1, -1, 1, 1 } };
-		int i = row, j = col;
-		for (int direction = 0; direction < 4; direction++) {
-			int count = 0;
-			System.out.println("[" + direction + "]-" + "[" + row + "," + col
-					+ "]  ");
-
-			i = row;
-			j = col;
-			while (i > 0 && i < matrix.length && j > 0 && j < matrix.length
-					&& matrix[i][j] == matrix[row][col]) {
-				count++;
-				if (count == 5) {
-					return matrix[row][col];
-				}
-				System.out.print("\t[" + i + "," + j + "]  ");
-				i += rc[direction][0];
-				j += rc[direction][1];
-				System.out.println("--->[" + i + "," + j + "]  ");
-			}
-			System.out.println("\tcount1 : " + count);
-
-			count--;
-			i = row;
-			j = col;
-			while (i > 0 && i < matrix.length && j > 0 && j < matrix.length
-					&& matrix[i][j] == matrix[row][col]) {
-				count++;
-				if (count == 5) {
-					return matrix[row][col];
-				}
-				System.out.print("\t[" + i + "," + j + "]  ");
-				i += rc[direction][2];
-				j += rc[direction][3];
-				System.out.println("--->[" + i + "," + j + "]  ");
-			}
-			System.out.println("\tcount : " + count);
-		}
-		return 0;
-	}
-       
+     
         private int checkWin(int row, int col, int[][] matrix) {
 		int[][] go = { { 0, -1, 0, 1 }, { -1, 0, 1, 0 }, { 1, -1, -1, 1 },
 				{ -1, -1, 1, 1 } };
