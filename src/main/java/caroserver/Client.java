@@ -1,16 +1,14 @@
 package caroserver;
 
-public class User {
+public class Client {
 	private String username;
 	private String password;
-	private String name;
 	private int highscore;
 	
-	public User(String username, String password, String name, int highscore) {
+	public Client(String username, String password, int highscore) {
 		super();
 		this.username = username;
 		this.password = password;
-		this.name = name;
 		this.highscore = highscore;
 	}
 
@@ -20,10 +18,6 @@ public class User {
 
 	public String getPassword() {
 		return password;
-	}
-
-	public String getName() {
-		return name;
 	}
 
 	public int getHighscore() {

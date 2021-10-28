@@ -5,10 +5,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class UserDAO extends DAO {
+public class ClientDAO extends DAO {
 	private Connection con;
 
-	public UserDAO() {
+	public ClientDAO() {
 		this.con = super.getInstance();
 	}
 
@@ -47,15 +47,14 @@ public class UserDAO extends DAO {
 
 	}
 
-	public boolean addUser(User user) {
+	public boolean addClient(Client user) {
 		boolean result = false;
 		try {
-			String query = "INSERT INTO client (username,password,playername,highscore) VALUES (?,?,?,?)";
+			String query = "INSERT INTO client (username,password,highscore) VALUES (?,?,?)";
 			PreparedStatement ps = con.prepareStatement(query);
 			ps.setString(1, user.getUsername());
 			ps.setString(2, user.getPassword());
-			ps.setString(3, user.getName());
-			ps.setInt(4, 0);
+			ps.setInt(3, 0);
 			int i = ps.executeUpdate();
 			if (i != 0) {
 				result = true;
