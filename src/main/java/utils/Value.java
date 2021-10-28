@@ -10,8 +10,8 @@ package utils;
  * @author Son Vu
  */
 public class Value {
-	public static int portNum = 5000;
+	public static int serverPort = 6000;
 	public static String hostAddress = "127.0.0.1";
-	public static int clientID = 1;
-	public static int clientPort = 6000;
+	public static int clientOrdinalNum = 1;
+	public static int clientPort = 5000;
 }

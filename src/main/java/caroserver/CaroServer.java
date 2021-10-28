@@ -14,8 +14,7 @@ import utils.Value;
 public class CaroServer {
 
 	public static void main(String[] args) {
-		Server server = new Server(Value.portNum);
-		server.start();
+		new Server().startServer();
 	}
 	
 }
