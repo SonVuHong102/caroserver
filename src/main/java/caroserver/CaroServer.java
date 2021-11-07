@@ -5,8 +5,6 @@
  */
 package caroserver;
 
-import utils.Value;
-
 /**
  *
  * @author Son Vu

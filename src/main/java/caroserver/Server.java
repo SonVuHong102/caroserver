@@ -21,7 +21,8 @@ import utils.Value;
  */
 public class Server {
 
-	private HashMap<String, Runnable> clientMap;
+	private HashMap<String, ClientListener> clientMap;
+	private HashMap<String,String> playerMap;
 
 	public void startServer() {
 		ServerSocket server = null;
@@ -29,7 +30,8 @@ public class Server {
 			// Create TCP Socket Server
 			server = new ServerSocket(Value.serverPort);
 
-			clientMap = new HashMap<String, Runnable>();
+			clientMap = new HashMap<String, ClientListener>();
+			playerMap = new HashMap<String, String>();
 			// Listening for client
 			System.out.println("$ Server Created");
 			while (true) {
@@ -48,8 +50,18 @@ public class Server {
 		}
 		// TODO On Server Closing : ¯\_(ツ)_/¯
 	}
+	
+// Send Refresh to all
+	private void sendRefreshToAll() {
+		StringBuilder sb = new StringBuilder("Refresh ");
+		String players = String.join(" ", playerMap.values());
+		sb.append(players);
+		for(ClientListener cl : clientMap.values()) {
+			cl.sendRefresh(sb.toString());
+		}
+	}
 
-	private class ClientListener implements Runnable {
+	public class ClientListener implements Runnable {
 
 		private Socket client;
 		private String clientName;
@@ -72,16 +84,67 @@ public class Server {
 		}
 
 		public void stop() {
+			playerMap.remove(clientName);
+			clientMap.remove(clientName);
+			sendRefreshToAll();
 			running.set(false);
 		}
 
-		private void sendToClient(String msg) {
+		public void sendToClient(String msg) {
 			try {
 				toClient.writeUTF(msg);
-				System.out.println("Send to Client : " + msg);
+				System.out.println("Send to [" + clientName + "] : " + msg);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
+		
+		private void closeSocket() {
+			try {
+				fromClient.close();
+				toClient.close();
+				client.close();
+				clientMap.remove(clientName);
+				playerMap.remove(clientName);
+				sendRefreshToAll();
+				this.stop();
+				System.out.println("$ " + clientName + " has disconnected");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		private void checkLogin(String username,String password) {
+			ClientDAO userDb = new ClientDAO();
+			if (userDb.checkLogin(username, password)) {
+				sendToClient("Login Accepted");
+				playerMap.put(clientName, username);
+			} else {
+				sendToClient("Login Rejected");
+			}
+		}
+		
+		private void checkSignup(String username,String password,String repassword) {
+			if (!password.equals(repassword)) {
+				sendToClient("Signup " + "PasswordNotMatch");
+			} else {
+				ClientDAO userDb = new ClientDAO();
+				if (userDb.isExistedUsername(username)) {
+					sendToClient("Signup " + "UsernameIsExisted");
+				} else if (userDb.addClient(new Client(username, password,0))) {
+					sendToClient("Signup " + "Successed");
+				} else {
+					sendToClient("Signup " + "Failed");
+				}
+			}
+		}
+		
+		public void sendRefresh(String players) {
+			sendToClient(players);
+		}
+		
+		private void sendInvitation(String other) {
+			
 		}
 
 		public void run() {
@@ -91,47 +154,24 @@ public class Server {
 					String msg = fromClient.readUTF();
 					String[] t = msg.split(" ");
 					if (t[0].equals("ClosingSocket")) {
-						stop();
-						fromClient.close();
-						toClient.close();
-						client.close();
-						clientMap.remove(clientName);
-						System.out.println("$ " + clientName + " has disconnected");
+						closeSocket();
 					} else if (t[0].equals("Login")) {
-						ClientDAO userDb = new ClientDAO();
 						String username = t[1];
 						String password = t[2];
-						if (userDb.checkLogin(username, password)) {
-							sendToClient("Login Accepted");
-							clientMap.put(username,this);
-							clientMap.remove(clientName);
-							clientName = username;
-						} else {
-							sendToClient("Login Rejected");
-						}
+						checkLogin(username,password);
 					} else if (t[0].equals("Signup")) {
 						String username = t[1];
 						String password = t[2];
 						String repassword = t[3];
-						if (!password.equals(repassword)) {
-							sendToClient("Signup " + "PasswordNotMatch");
-						} else {
-							ClientDAO userDb = new ClientDAO();
-							if (userDb.isExistedUsername(username)) {
-								sendToClient("Signup " + "UsernameIsExisted");
-							} else if (userDb.addClient(new Client(username, password,0))) {
-								sendToClient("Signup " + "Successed");
-							} else {
-								sendToClient("Signup " + "Failed");
-							}
-						}
+						checkSignup(username, password, repassword);
+					} else if(t[0].equals("Refresh")) {
+						sendRefreshToAll();
+					} else if(t[0].equals("Invite")) {
+						sendInvitation(t[1]);
 					}
 
-				} catch (IOException e) {
-					e.printStackTrace();
-					if (e.getMessage().equals("Connection reset")) {
-						stop();
-					}
+				} catch (Exception e) {
+					this.stop();
 				}
 			}
 		}
