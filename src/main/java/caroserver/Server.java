@@ -22,7 +22,6 @@ import utils.Value;
 public class Server {
 
 	private HashMap<String, ClientListener> clientMap;
-	private HashMap<String,String> playerMap;
 
 	public void startServer() {
 		ServerSocket server = null;
@@ -31,7 +30,6 @@ public class Server {
 			server = new ServerSocket(Value.serverPort);
 
 			clientMap = new HashMap<String, ClientListener>();
-			playerMap = new HashMap<String, String>();
 			// Listening for client
 			System.out.println("$ Server Created");
 			while (true) {
@@ -53,8 +51,8 @@ public class Server {
 	
 // Send Refresh to all
 	private void sendRefreshToAll() {
-		StringBuilder sb = new StringBuilder("Refresh ");
-		String players = String.join(" ", playerMap.values());
+		StringBuilder sb = new StringBuilder("RefreshPlayer ");
+		String players = String.join(" ", clientMap.keySet());
 		sb.append(players);
 		for(ClientListener cl : clientMap.values()) {
 			cl.sendRefresh(sb.toString());
@@ -84,7 +82,6 @@ public class Server {
 		}
 
 		public void stop() {
-			playerMap.remove(clientName);
 			clientMap.remove(clientName);
 			sendRefreshToAll();
 			running.set(false);
@@ -105,7 +102,6 @@ public class Server {
 				toClient.close();
 				client.close();
 				clientMap.remove(clientName);
-				playerMap.remove(clientName);
 				sendRefreshToAll();
 				this.stop();
 				System.out.println("$ " + clientName + " has disconnected");
@@ -115,10 +111,16 @@ public class Server {
 		}
 		
 		private void checkLogin(String username,String password) {
+			if(clientMap.containsKey(username)) {
+				sendToClient("Login InUsing");
+				return;
+			}
 			ClientDAO userDb = new ClientDAO();
 			if (userDb.checkLogin(username, password)) {
 				sendToClient("Login Accepted");
-				playerMap.put(clientName, username);
+				clientMap.put(username, this);
+				clientMap.remove(clientName);
+				clientName = username;
 			} else {
 				sendToClient("Login Rejected");
 			}
@@ -144,7 +146,24 @@ public class Server {
 		}
 		
 		private void sendInvitation(String other) {
-			
+			clientMap.get(other).sendToClient("Invitation " + clientName);
+			sendToClient("InvitedPlayer " + other);
+		}
+		
+		private void sendRejected(String other) {
+			clientMap.get(other).sendToClient("RejectedInvitation " + clientName);
+		}
+		
+		private void sendAccepted(String opp) {
+			clientMap.get(opp).sendToClient("AcceptedInvitation " + clientName);
+		}
+		
+		private void sendExitToOpp(String opp) {
+			clientMap.get(opp).sendToClient("ExitedGame " + clientName);
+		}
+		
+		private void sendExit(String opp) {
+			sendToClient("ExitedGame " + opp);
 		}
 
 		public void run() {
@@ -155,6 +174,10 @@ public class Server {
 					String[] t = msg.split(" ");
 					if (t[0].equals("ClosingSocket")) {
 						closeSocket();
+						// IN PLAYING GAME
+						if(t.length>1) {
+							sendExitToOpp(t[1]);
+						}
 					} else if (t[0].equals("Login")) {
 						String username = t[1];
 						String password = t[2];
@@ -164,10 +187,16 @@ public class Server {
 						String password = t[2];
 						String repassword = t[3];
 						checkSignup(username, password, repassword);
-					} else if(t[0].equals("Refresh")) {
+					} else if(t[0].equals("RefreshPlayer")) {
 						sendRefreshToAll();
 					} else if(t[0].equals("Invite")) {
 						sendInvitation(t[1]);
+					} else if(t[0].equals("RejectedInvitation")) {
+						sendRejected(t[1]);
+					} else if(t[0].equals("AcceptedInvitation")) {
+						sendAccepted(t[1]);
+					} else if(t[0].equals("ExitedGame")) {
+						sendExit(t[1]);
 					}
 
 				} catch (Exception e) {
