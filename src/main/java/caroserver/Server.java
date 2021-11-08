@@ -34,7 +34,7 @@ public class Server {
 			System.out.println("$ Server Created");
 			while (true) {
 				Socket client = server.accept();
-				String name = "client " + Value.clientOrdinalNum;
+				String name = "_client" + Value.clientOrdinalNum;
 				Value.clientOrdinalNum++;
 				System.out.println("\nClient : " + client.getInetAddress().getHostAddress() + " - " + client.getPort()
 						+ " connected as " + name);
@@ -52,7 +52,13 @@ public class Server {
 // Send Refresh to all
 	private void sendRefreshToAll() {
 		StringBuilder sb = new StringBuilder("RefreshPlayer ");
-		String players = String.join(" ", clientMap.keySet());
+//		String players = String.join(" ", clientMap.keySet());
+		StringBuilder players = new StringBuilder("");
+		for(String i : clientMap.keySet()) {
+			if(!i.contains("_client")) {
+				players.append(i + " ");
+			}
+		}
 		sb.append(players);
 		for(ClientListener cl : clientMap.values()) {
 			cl.sendRefresh(sb.toString());
