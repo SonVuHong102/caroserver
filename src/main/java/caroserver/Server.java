@@ -165,6 +165,10 @@ public class Server {
 		private void sendExit(String opp) {
 			sendToClient("ExitedGame " + opp);
 		}
+		
+		private void sendMoveToOpp(String opp,String row,String column) {
+			clientMap.get(opp).sendToClient("OppMoved " + row + " " + column);
+		}
 
 		public void run() {
 			running.set(true);
@@ -197,6 +201,11 @@ public class Server {
 						sendAccepted(t[1]);
 					} else if(t[0].equals("ExitedGame")) {
 						sendExit(t[1]);
+					} else if(t[0].equals("Move")) {
+						String opp = t[1];
+						String row = t[2];
+						String column = t[3];
+						sendMoveToOpp(opp,row,column);
 					}
 
 				} catch (Exception e) {
