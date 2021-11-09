@@ -52,7 +52,6 @@ public class Server {
 // Send Refresh to all
 	private void sendRefreshToAll() {
 		StringBuilder sb = new StringBuilder("RefreshPlayer ");
-//		String players = String.join(" ", clientMap.keySet());
 		StringBuilder players = new StringBuilder("");
 		for(String i : clientMap.keySet()) {
 			if(!i.contains("_client")) {
@@ -152,8 +151,12 @@ public class Server {
 		}
 		
 		private void sendInvitation(String other) {
-			clientMap.get(other).sendToClient("Invitation " + clientName);
-			sendToClient("InvitedPlayer " + other);
+			if(clientMap.containsKey(other)) {
+				clientMap.get(other).sendToClient("Invitation " + clientName);
+				sendToClient("InvitedPlayer " + other);
+			} else {
+				sendToClient("InvitedPlayerFailed " + other);
+			}
 		}
 		
 		private void sendRejected(String other) {
@@ -161,7 +164,20 @@ public class Server {
 		}
 		
 		private void sendAccepted(String opp) {
-			clientMap.get(opp).sendToClient("AcceptedInvitation " + clientName);
+			if(clientMap.containsKey(opp) && clientMap.containsKey(clientName)) {
+				clientMap.get(opp).sendToClient("AcceptedInvitation " + clientName);
+			} else {
+				sendToClient("PlayerNotAvaiable " + opp);
+			}
+		}
+		
+		private void sendCreateGame(String opp) {
+			if(clientMap.containsKey(opp) && clientMap.containsKey(clientName)) {
+				sendToClient("CreateGame " + opp + " 1");
+				clientMap.get(opp).sendToClient("CreateGame " + clientName + " -1");
+			} else {
+				sendToClient("PlayerNotAvaiable " + opp);
+			}
 		}
 		
 		private void sendExitToOpp(String opp) {
@@ -174,6 +190,15 @@ public class Server {
 		
 		private void sendMoveToOpp(String opp,String row,String column) {
 			clientMap.get(opp).sendToClient("OppMoved " + row + " " + column);
+		}
+		
+		private void sendChatToOpp(String opp, String msg) {
+			clientMap.get(opp).sendToClient("Chat " + opp);
+			clientMap.get(opp).sendToClient(msg);
+		}
+		
+		private void sendSurrender(String opp) {
+			clientMap.get(opp).sendToClient("OppSurrender " + opp);
 		}
 
 		public void run() {
@@ -205,13 +230,20 @@ public class Server {
 						sendRejected(t[1]);
 					} else if(t[0].equals("AcceptedInvitation")) {
 						sendAccepted(t[1]);
-					} else if(t[0].equals("ExitedGame")) {
+					} else if(t[0].equals("ReadyToPlay")) {
+						sendCreateGame(t[1]);
+					}else if(t[0].equals("ExitedGame")) {
 						sendExit(t[1]);
 					} else if(t[0].equals("Move")) {
 						String opp = t[1];
 						String row = t[2];
 						String column = t[3];
 						sendMoveToOpp(opp,row,column);
+					} else if(t[0].equals("Chat")) {
+						msg = fromClient.readUTF();
+						sendChatToOpp(t[1],msg);
+					} else if(t[0].equals("Surrender")) {
+						sendSurrender(t[1]);
 					}
 
 				} catch (Exception e) {
