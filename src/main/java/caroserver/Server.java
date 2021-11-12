@@ -10,6 +10,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -22,7 +23,7 @@ import utils.Value;
 public class Server {
 
 	private HashMap<String, ClientListener> clientMap;
-
+	private ArrayList<int[][]> boardList;
 	public void startServer() {
 		ServerSocket server = null;
 		try {
@@ -30,6 +31,7 @@ public class Server {
 			server = new ServerSocket(Value.serverPort);
 
 			clientMap = new HashMap<String, ClientListener>();
+			boardList = new ArrayList<int[][]>();
 			// Listening for client
 			System.out.println("$ Server Created");
 			while (true) {
@@ -70,6 +72,9 @@ public class Server {
 		private String clientName;
 		private DataInputStream fromClient;
 		private DataOutputStream toClient;
+		
+		private int boardID;
+		private int side;
 
 		public ClientListener(Socket client, String clientName) throws IOException {
 			this.client = client;
@@ -152,6 +157,7 @@ public class Server {
 		
 		private void sendInvitation(String other) {
 			if(clientMap.containsKey(other)) {
+				side = 1;
 				clientMap.get(other).sendToClient("Invitation " + clientName);
 				sendToClient("InvitedPlayer " + other);
 			} else {
@@ -165,6 +171,7 @@ public class Server {
 		
 		private void sendAccepted(String opp) {
 			if(clientMap.containsKey(opp) && clientMap.containsKey(clientName)) {
+				side = -1;
 				clientMap.get(opp).sendToClient("AcceptedInvitation " + clientName);
 			} else {
 				sendToClient("PlayerNotAvaiable " + opp);
@@ -173,8 +180,11 @@ public class Server {
 		
 		private void sendCreateGame(String opp) {
 			if(clientMap.containsKey(opp) && clientMap.containsKey(clientName)) {
-				sendToClient("CreateGame " + opp + " 1");
-				clientMap.get(opp).sendToClient("CreateGame " + clientName + " -1");
+				int[][] board = new int[Value.blockNum][Value.blockNum];
+				boardList.add(board);
+				boardID = (boardList.size()-1);
+				sendToClient("CreateGame " + opp + " 1 " + boardID);
+				clientMap.get(opp).sendToClient("CreateGame " + clientName + " -1 " + boardID);
 			} else {
 				sendToClient("PlayerNotAvaiable " + opp);
 			}
@@ -184,12 +194,24 @@ public class Server {
 			clientMap.get(opp).sendToClient("ExitedGame " + clientName);
 		}
 		
+		private void sendInPlaying(String opp) {
+			clientMap.get(opp).sendToClient("InPlaying " + clientName);
+		}
+		
 		private void sendExit(String opp) {
 			sendToClient("ExitedGame " + opp);
 		}
 		
-		private void sendMoveToOpp(String opp,String row,String column) {
-			clientMap.get(opp).sendToClient("OppMoved " + row + " " + column);
+		private void sendMoveToOpp(String opp, String _row,String _column) {
+			int row = Integer.parseInt(_row);
+			int column = Integer.parseInt(_column);
+			boardList.get(boardID)[row][column] = side;
+			// TODO
+//			if(checkWin) {
+//			
+//			} else {
+				clientMap.get(opp).sendToClient("OppMoved " + row + " " + column);
+//			}
 		}
 		
 		private void sendChatToOpp(String opp, String msg) {
@@ -232,8 +254,10 @@ public class Server {
 						sendAccepted(t[1]);
 					} else if(t[0].equals("ReadyToPlay")) {
 						sendCreateGame(t[1]);
-					}else if(t[0].equals("ExitedGame")) {
+					} else if(t[0].equals("ExitedGame")) {
 						sendExit(t[1]);
+					} else if(t[0].equals("InPlaying")) {
+						sendInPlaying(t[1]);
 					} else if(t[0].equals("Move")) {
 						String opp = t[1];
 						String row = t[2];
@@ -244,6 +268,10 @@ public class Server {
 						sendChatToOpp(t[1],msg);
 					} else if(t[0].equals("Surrender")) {
 						sendSurrender(t[1]);
+					} else if(t[0].equals("InitRoomSession")) {
+						clientName = t[1];
+						clientMap.put(clientName, this);
+						sendRefreshToAll();
 					}
 
 				} catch (Exception e) {
