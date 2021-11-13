@@ -204,91 +204,128 @@ public class Server {
             sendToClient("ExitedGame " + opp);
         }
         //checkwin
-        public boolean checkWin(int i, int j, ArrayList<int[][]> broadList) {
-            int d = 0, k = i, h;
-            // check row
-            while (boardList.get(boardID)[k][j] == boardList.get(boardID)[i][j]) {
-                d++;
-                k++;
-            }
-            k = i - 1;
-            while (boardList.get(boardID)[k][j] == boardList.get(boardID)[i][j]) {
-                d++;
-                k--;
-            }
-            if (d > 4) {
-                return true;
-            }
-            d = 0;
-            h = j;
-            // check col
-            while (boardList.get(boardID)[i][h] == boardList.get(boardID)[i][j]) {
-                d++;
-                h++;
-            }
-            h = j - 1;
-            while (boardList.get(boardID)[i][h] == boardList.get(boardID)[i][j]) {
-                d++;
-                h--;
-            }
-            if (d > 4) {
-                return true;
-            }
-            // check diagonal 1
-            h = i;
-            k = j;
-            d = 0;
-            while (boardList.get(boardID)[i][j] == boardList.get(boardID)[h][k]) {
-                d++;
-                h++;
-                k++;
-            }
-            h = i - 1;
-            k = j - 1;
-            while (boardList.get(boardID)[i][j] == boardList.get(boardID)[h][k]) {
-                d++;
-                h--;
-                k--;
-            }
-            if (d > 4) {
-                return true;
-            }
-            // check diagonal 2
-            h = i;
-            k = j;
-            d = 0;
-            while (boardList.get(boardID)[i][j] == boardList.get(boardID)[h][k]) {
-                d++;
-                h++;
-                k--;
-            }
-            h = i - 1;
-            k = j + 1;
-            while (boardList.get(boardID)[i][j] == boardList.get(boardID)[h][k]) {
-                d++;
-                h--;
-                k++;
-            }
-            if (d > 4) {
-                return true;
-            }
-            // nếu không đương chéo nào thỏa mãn thì trả về false.
-            return false;
-        }
+//        public boolean checkWin(int i, int j, int[][] boardStatus) {
+//        	System.out.println("isStartCheckingWin");
+//            int d = 0, k = i, h;
+//            // check row
+//            while (boardStatus[k][j] == boardStatus[i][j]) {
+//                d++;
+//                k++;
+//            }
+//            k = i - 1;
+//            while (boardStatus[k][j] == boardStatus[i][j]) {
+//                d++;
+//                k--;
+//            }
+//            if (d > 4) {
+//                return true;
+//            }
+//            d = 0;
+//            h = j;
+//            // check col
+//            while (boardStatus[i][h] == boardStatus[i][j]) {
+//                d++;
+//                h++;
+//            }
+//            h = j - 1;
+//            while (boardStatus[i][h] == boardStatus[i][j]) {
+//                d++;
+//                h--;
+//            }
+//            if (d > 4) {
+//                return true;
+//            }
+//            // check diagonal 1
+//            h = i;
+//            k = j;
+//            d = 0;
+//            while (boardStatus[i][j] == boardStatus[h][k]) {
+//                d++;
+//                h++;
+//                k++;
+//            }
+//            h = i - 1;
+//            k = j - 1;
+//            while (boardStatus[i][j] == boardStatus[h][k]) {
+//                d++;
+//                h--;
+//                k--;
+//            }
+//            if (d > 4) {
+//                return true;
+//            }
+//            // check diagonal 2
+//            h = i;
+//            k = j;
+//            d = 0;
+//            while (boardStatus[i][j] == boardStatus[h][k]) {
+//                d++;
+//                h++;
+//                k--;
+//            }
+//            h = i - 1;
+//            k = j + 1;
+//            while (boardStatus[i][j] == boardStatus[h][k]) {
+//                d++;
+//                h--;
+//                k++;
+//            }
+//            System.out.println("isEndCheckingWin");
+//            if (d > 4) {
+//                return true;
+//            }
+//            // nếu không đương chéo nào thỏa mãn thì trả về false.
+//            return false;
+//        }
+        private int checkWin(int row, int col, int[][] matrix) {
+    		int[][] go = { { 0, -1, 0, 1 }, { -1, 0, 1, 0 }, { 1, -1, -1, 1 },
+    				{ -1, -1, 1, 1 } };
+    		int i = row, j = col;
+
+                    // matrix[row][col] = 1 => team 1 thắng
+                    // matrix[row][col] = 2 => team 2 thắng.
+    		for (int direction = 0; direction < 4; direction++) {
+    			int count = 0;
+    			i = row;
+    			j = col;
+                            // đi xuôi
+    			while (i >=0 && i < matrix.length && j >=0 && j < matrix.length
+    					&& matrix[i][j] == matrix[row][col]) {
+    				count++;
+    				if (count >= 5) {
+    					return matrix[row][col];
+    				}
+    				i += go[direction][0];
+    				j += go[direction][1];
+    			}
+
+                            // đi ngược
+    			count--;
+    			i = row;
+    			j = col;
+    			while (i >=0 && i < matrix.length && j >=0 && j < matrix.length
+    					&& matrix[i][j] == matrix[row][col]) {
+    				count++;
+    				if (count >= 5) {
+    					return matrix[row][col]; // thang
+    				}
+    				i += go[direction][2];
+    				j += go[direction][3];
+    			}
+    		}
+    		return 0; // khong thang
+    	}
 
         // end checkwin
         private void sendMoveToOpp(String opp, String _row, String _column) {
             int row = Integer.parseInt(_row);
             int column = Integer.parseInt(_column);
             boardList.get(boardID)[row][column] = side;
-            // TODO
-//            int isWin = checkWin(row, column);
-            if (checkWin(row, column, boardList) == false) {
-                clientMap.get(opp).sendToClient("OppMoved " + row + " " + column);
-            } else {
-                clientMap.get(opp).sendToClient("OppWin " + clientName);
-                System.out.println(clientName + "lose");
-//                clientMap.get(opp).sendToClient("OppMoved " + row + " " + column);
+            clientMap.get(opp).sendToClient("OppMoved " + row + " " + column);
+          
+            if (checkWin(row, column, boardList.get(boardID)) == side) {
+                clientMap.get(opp).sendToClient("OppWon " + clientName);
+                sendToClient("YouWon " + opp);
             }
         }
 
@@ -306,6 +343,7 @@ public class Server {
             while (running.get()) {
                 try {
                     String msg = fromClient.readUTF();
+                    System.out.println("Receive from [" + clientName +"] : " + msg);
                     String[] t = msg.split(" ");
                     if (t[0].equals("ClosingSocket")) {
                         closeSocket();
